@@ -103,14 +103,42 @@ class Program
         };
 
         await migrationRunner.ApplyAllMigrationsAsync(migrations);
+
+        // If __Migrations said "already applied" but tables were dropped/recreated, re-apply the initial migration
+        if (!await TableExistsAsync(connectionManager, "checkup_types"))
+        {
+            Console.WriteLine("Schema missing (checkup_types table not found). Re-applying initial migration...");
+            await migrationRunner.RemoveMigrationRecordAsync(new InitialMigration().Id);
+            await migrationRunner.ApplyAllMigrationsAsync(migrations);
+        }
+
         Console.WriteLine("Migrations completed.\n");
     }
 
+    /// <summary>
+    /// Returns true if a table exists in the public schema.
+    /// </summary>
+    static async Task<bool> TableExistsAsync(ConnectionManager connectionManager, string tableName)
+    {
+        return await connectionManager.ExecuteWithConnectionAsync(async (NpgsqlConnection connection) =>
+        {
+            const string sql = "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = @name LIMIT 1;";
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@name", tableName);
+            var result = await command.ExecuteScalarAsync();
+            return result != null;
+        });
+    }
+
+    
+    /// Seeds the CheckupTypes lookup table with values from the CheckupType enum.
+    /// Skips seeding if the table already has data
     static async Task SeedCheckupTypesAsync()
     {
         var checkupTypes = _dbContext!.CheckupTypes;
         var existingTypes = await checkupTypes.GetAllAsync();
 
+        // Skip if already seeded to avoid duplicate entries
         if (existingTypes.Count > 0)
         {
             Console.WriteLine("CheckupTypes already seeded.\n");
@@ -118,6 +146,7 @@ class Program
         }
 
         Console.WriteLine("Seeding CheckupTypes...");
+        // Get all enum values (GP, BLOOD, XRAY, CT, MRI, etc.)
         var enumValues = Enum.GetValues<CheckupType>();
         foreach (var enumValue in enumValues)
         {
@@ -180,7 +209,7 @@ class Program
     {
         while (true)
         {
-            Console.WriteLine("\n=== Patient Management ===");
+            Console.WriteLine("\n--- Patient Management ---");
             Console.WriteLine("1. Create Patient");
             Console.WriteLine("2. View All Patients");
             Console.WriteLine("3. Search Patients");
@@ -350,7 +379,7 @@ class Program
     {
         while (true)
         {
-            Console.WriteLine("\n=== Checkup Management ===");
+            Console.WriteLine("\n--- Checkup Management ---");
             Console.WriteLine("1. Create Checkup");
             Console.WriteLine("2. View All Checkups");
             Console.WriteLine("3. View Checkups by Patient");
@@ -476,7 +505,7 @@ class Program
     {
         while (true)
         {
-            Console.WriteLine("\n=== Prescription Management ===");
+            Console.WriteLine("\n--- Prescription Management ---");
             Console.WriteLine("1. Create Prescription");
             Console.WriteLine("2. View All Prescriptions");
             Console.WriteLine("3. View Prescriptions by Patient");
@@ -587,7 +616,7 @@ class Program
 
     static async Task ReportsMenuAsync()
     {
-        Console.WriteLine("\n=== Reports ===");
+        Console.WriteLine("\n--- Reports ---");
         Console.WriteLine("1. Patient Summary (with checkups and prescriptions)");
         Console.WriteLine("2. Back to Main Menu");
         Console.Write("Select an option: ");
@@ -621,7 +650,7 @@ class Program
         var checkups = await _checkupService!.GetCheckupsByPatientAsync(patientId);
         var prescriptions = await _prescriptionService!.GetPrescriptionsByPatientAsync(patientId);
 
-        Console.WriteLine($"\n=== Patient Summary ===");
+        Console.WriteLine($"\n--- Patient Summary ---");
         Console.WriteLine($"Patient: {patient.FullName} (ID: {patient.id})");
         Console.WriteLine($"Age: {patient.Age}, Gender: {patient.gender}");
         Console.WriteLine($"\nCheckups: {checkups.Count}");

@@ -18,3 +18,4 @@ C:\Users\goran\Documents\Visual Studio 2022\GoranJuniorSkoric_ADPC_Apolon1\Goran
 C:\Users\goran\Documents\Visual Studio 2022\GoranJuniorSkoric_ADPC_Apolon1\GoranJuniorSkoric_ADPC_Apolon1\obj\Debug\net8.0\GoranJuniorSkoric_ADPC_Apolon1.pdb
 C:\Users\goran\Documents\Visual Studio 2022\GoranJuniorSkoric_ADPC_Apolon1\GoranJuniorSkoric_ADPC_Apolon1\obj\Debug\net8.0\GoranJuniorSkoric_ADPC_Apolon1.genruntimeconfig.cache
 C:\Users\goran\Documents\Visual Studio 2022\GoranJuniorSkoric_ADPC_Apolon1\GoranJuniorSkoric_ADPC_Apolon1\obj\Debug\net8.0\ref\GoranJuniorSkoric_ADPC_Apolon1.dll
+C:\Users\goran\Documents\Visual Studio 2022\GoranJuniorSkoric_ADPC_Apolon1\GoranJuniorSkoric_ADPC_Apolon1\obj\Debug\net8.0\GoranJuniorSkoric_ADPC_Apolon1.sourcelink.json

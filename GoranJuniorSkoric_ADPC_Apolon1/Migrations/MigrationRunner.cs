@@ -163,4 +163,20 @@ public class MigrationRunner
             await ApplyMigrationAsync(migration);
         }
     }
+
+    /// <summary>
+    /// Removes a migration record from __Migrations so it can be re-applied.
+    /// Use when the DB was recreated or tables were dropped but __Migrations still marks the migration as applied.
+    /// </summary>
+    public async Task RemoveMigrationRecordAsync(string migrationId)
+    {
+        await _connectionManager.ExecuteWithConnectionAsync(async (NpgsqlConnection connection) =>
+        {
+            var sql = "DELETE FROM \"__Migrations\" WHERE \"Id\" = @id;";
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@id", migrationId);
+            await command.ExecuteNonQueryAsync();
+            return Task.CompletedTask;
+        });
+    }
 }
